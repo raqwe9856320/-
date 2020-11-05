@@ -1,0 +1,41 @@
+﻿@model EIP_System.ViewModels.CVM_ProjectTeamMember
+@{
+    ViewBag.Title = "_projectPartial";
+}
+
+@{ 
+    int pecentage = Convert.ToInt32(@Model.project.fProgress*100);
+}
+
+<tr id="p_@Model.project.fProjectId">
+    <td>@Model.project.fProjectId</td>
+    <td>
+        <a>@Model.project.fProjectName</a>
+    </td>
+    <td style="width:10%">
+        <ul class="list-inline">
+
+            @foreach (var people in @Model.members)
+            { 
+                <li><p>@people.fEmployeeId</p></li>
+            }
+            
+        </ul>
+    </td>
+    <td class="project_progress" style="width:20%">
+        <div class="progress progress_sm">
+            <div class="progress-bar bg-green" role="progressbar" style="width: @pecentage%;" aria-valuenow="@pecentage%" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <small>@pecentage% Complete</small>
+    </td>
+    <td>
+        <button type="button" class="btn btn-success btn-xs">@Model.project.fPaymentStatus</button>
+    </td>
+    <td style="width:30%">
+        @*<a href="#" class="btn btn-primary btn-xs">
+            <i class="fa fa-folder"></i> View
+        </a>*@
+        @Html.ActionLink("View", "Edit", "Project", new { fPRJId = @Model.project.fProjectId },new { Class = "btn btn-primary btn-xs" })
+    </td>
+</tr>
+

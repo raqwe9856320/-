@@ -1,0 +1,79 @@
+﻿
+@{
+    ViewBag.Title = "testfortable";
+}
+
+<h2>testfortable</h2>
+
+
+<table id="example">
+    <thead>
+        <tr>
+            <th>Day</th>
+            <th>Start</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Monday</td>
+            <td>8:00 am</td>
+        </tr>
+        <tr>
+            <td>Tuesday</td>
+            <td>7:00 am</td>
+        </tr>
+        <tr>
+            <td>Wednesday</td>
+            <td>8:00 am</td>
+        </tr>
+        <tr>
+            <td>Thursday</td>
+            <td>11:00 am</td>
+        </tr>
+        <tr>
+            <td>Friday</td>
+            <td>6:00 am</td>
+        </tr>
+    </tbody>
+</table>
+
+
+    @section scripts{
+    <script>
+        var times = [
+            "未開始",
+            "進行中",
+            "待驗收",
+            "驗收完成"
+        ];
+
+        $(function () {
+            $("#example").DataTable({
+                "columns": [
+                    null,
+                    {
+                        "render": function (d, t, r) {
+                            var $select = $("<select></select>", {
+                                "id": r[0] + "start",
+                                "value": d
+                            });
+                            $.each(times, function (k, v) {
+                                var $option = $("<option></option>", {
+                                    "text": v,
+                                    "value": v
+                                });
+                                if (d === v) {
+                                    $option.attr("selected", "selected")
+                                }
+                                $select.append($option);
+                            });
+                            return $select.prop("outerHTML");
+                        }
+                    }
+                ]
+            });
+        });
+
+    </script>
+
+    }

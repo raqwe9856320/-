@@ -1,0 +1,253 @@
+﻿@model IEnumerable<EIP_System.Models.tSignoff>
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="row">
+    <!-- 考勤審核 -->
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 考勤審核 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered" id="table_leavelist">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>審核大項目</th>
+                            <th>申請人</th>
+                            <th>申請類別</th>
+                            <th>申請日期</th>
+                            <th>申請原因</th>
+                            <th>生效日期</th>
+                            <th>到期日期</th>
+                            <th>審核過期日期</th>
+                            <th>審核狀態</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 考勤紀錄 -->
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 考勤審核紀錄 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered" id="table_signoff">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>審核大項目</th>
+                            <th>審核類別</th>
+                            <th>申請人</th>
+                            <th>申請日期</th>
+                            <th>審核日期</th>
+                            <th>審核狀態</th>
+                        </tr>
+                    </thead>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 確認審核視窗 -->
+<div class="modal fade bs-example-modal-lg" id="myModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">審核資料</h4>
+            </div>
+            <div class="modal-body">
+                <h4>請再最後一次確認審核資料是否通過</h4>
+                <div class="row">
+                    <div id="modal_table">
+                        @*顯示審核的資料列*@
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="text-center">
+                        <button type="button" class="btn btn-success btn-lg" onclick="submit('1')">
+                            <i class="fa fa-check">通過</i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-lg" onclick="submit('0')">
+                            <i class="fa fa-remove">不通過</i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+        var LeaveTable,SignoffTable;
+
+        var editrow_id; //儲存目前的編輯資料id
+
+        $(document).ready(function () {
+
+            LeaveTable =
+                $("#table_leavelist").DataTable({
+                "ajax": {
+                    "type": "POST",
+                    "url": "@Url.Action("getAllData", "Signoff")",
+                    "datatype": "JSON"
+                },
+                    "columns": [
+                    { "data": "catelog"},
+                    { "data": "name" },
+                    { "data": "applyclass" },
+                    { "data": "applydate" },
+                    { "data": "reason" },
+                    { "data": "activedate" },
+                    { "data": "enddate" },
+                    { "data": "expireddate" },
+                    {
+                        "data": "isagreed", "render": function (agree) {
+                            let show;
+                            if (agree == null) {
+                                show = '<div class=""><i class="fa fa-clock-o">待審核</i></div>';
+                            } else if (agree == 1) {
+                                show = '<div class="green"><i class="fa fa-check-square ">通過</i></div>';
+                            } else {
+                                show = '<div class="red"><i class="fa fa-remove">不通過</i></div>';
+                            }
+                            return show;
+                        }
+                    },
+                    {
+                        "data": "id", "render": function (id) {
+                            return `<a class='btn btn-primary' onclick='getrow(${id});showModal();'>審核</a>`
+                        }
+                    }
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "目前沒有任何申請資料"
+                }
+
+                });
+
+            SignoffTable =
+                $("#table_signoff").DataTable({
+                    "ajax": {
+                        "type": "POST",
+                        "url": "@Url.Action("getSignoffData", "Signoff")",
+                        "datatype": "JSON",
+                    },
+                    "columns": [
+                        { "data": "catelog" },
+                        { "data": "applyclass" },
+                        { "data": "name" },
+                        { "data": "applydate" },
+                        { "data": "passdate" },
+                        {
+                            "data": "isagreed", "render": function (agree) {
+                                let show;
+                                if (agree == null) {
+                                    show = '<div class=""><i class="fa fa-clock-o">待審核</i></div>';
+                                } else if (agree == 1) {
+                                    show = '<div class="green"><i class="fa fa-check-square ">通過</i></div>';
+                                } else {
+                                    show = '<div class="red"><i class="fa fa-remove">不通過</i></div>';
+                                }
+                                return show;
+                            }
+                        },
+
+                    ],
+                    "language": {
+                        "processing": "<p>載入中</p>",
+                        "emptyTable": "目前沒有任何審核通過資料"
+                    }
+                });
+
+        });
+
+        //顯示 視窗
+        function showModal() {
+            $("#myModal").modal("show");
+        }
+
+        function submit(pass) {
+            console.log(editrow_id);
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Editpass", "Signoff")",
+                data: { id: editrow_id, agree: pass},
+                success: function () {
+                    alert("資料儲存成功");
+                    LeaveTable.ajax.reload();
+                    SignoffTable.ajax.reload();
+                    $("#myModal").modal('hide');
+                },
+                error: function (err) {
+                    console.log(`Ajax error: ${err.status} - ${err.statusText}`);
+                }
+            });
+        }
+
+        //取得要審核的row
+        function getrow(id) {
+            editrow_id = id;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("getRow", "Signoff")/" + id,
+                dataType: "JSON",
+                success: function (data) {
+                    //console.log(data);
+                    $('#modal_table').html("");
+                    let trHTML = '<table class="table table-bordered">';
+                    trHTML += `<thead class="bg-primary">
+                                    <tr>
+                                        <th>申請人</th>
+                                        <th>申請類別</th>
+                                        <th>申請日期</th>
+                                        <th>申請原因</th>
+                                        <th>生效日期</th>
+                                        <th>到期日期</th>
+                                        <th>審核過期日期</th>
+                                    </tr>
+                                </thead>`;
+
+                    trHTML +=
+                        '<tr><td>' + data.name +
+                        '<td>' + data.applyclass +
+                        '<td>' + data.applydate +
+                        '<td>' + data.reason +
+                        '<td>' + data.activedate +
+                        '<td>' + data.enddate +
+                        '<td>' + data.expireddate;
+
+                    $('#modal_table').append(trHTML);
+                },
+                error: function (err) {
+                    console.log(`Ajax error: ${err.status} - ${err.statusText}`);
+                }
+            });
+        }
+    </script>
+
+}

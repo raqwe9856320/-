@@ -1,0 +1,48 @@
+﻿@model IEnumerable<EIP_System.Models.tLevel>
+
+    <p>
+        @*@Html.ActionLink("新增階段", "CreateLevel")*@
+        @Html.ActionLink("新增階段", "CreateLevel", new { prjId = Model.FirstOrDefault().fProjectId })
+    </p>
+
+<div class="col-md-6 col-sm-6  ">
+    <div class="x_panel">
+        <div class="x_title">
+            <h2>專案階段 </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>階段</th>
+                        <th>動作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int count = 0;
+                        foreach (var item in Model)
+                        {
+                            count++;
+                            <tr>
+                                <td>
+                                    @count
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.fLevelName)
+                                </td>
+
+                                <td>
+                                    @Html.ActionLink("編輯", "EditLevel", new { fId = item.fLevelId }) |
+                                    @Html.ActionLink("刪除", "DeleteLevel", new { fId = item.fLevelId, prjId = item.fProjectId })
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

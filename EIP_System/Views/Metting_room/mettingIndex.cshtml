@@ -1,0 +1,144 @@
+﻿@model Dictionary<string, object>
+@{
+
+    ViewBag.Title = "MettingIndex";
+List<SelectListItem> select_room = new List<SelectListItem>() { new SelectListItem() { Text = "A會議室", Value = "A" }, new SelectListItem() { Text = "B會議室", Value = "B" } };
+ }
+
+<h2>Index</h2>
+<div style="text-align:center">
+    @Html.DropDownList("select_room", (IEnumerable<SelectListItem>)select_room, new { })
+    <input type="hidden" id="room" />
+</div>
+
+<head lang="en">
+
+    <meta charset="UTF-8">
+
+    <title>日曆</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js"></script>
+
+    <link href="~/Content/Metting/Calendar.css" rel="stylesheet" />
+    <script src="~/Scripts/Metting_date/Metting_date.js"></script>
+
+    @section scripts{
+        <script>
+            @{ 
+                object message;
+                if (Model != null && Model.TryGetValue("message", out message))
+                {
+                    <text>
+                        alert('@(message as string)');
+                    </text>
+                }
+            }
+        </script>
+    }
+
+</head>
+<div id="edit" class="black_overlay">
+    <div id="dialog-form" title="" class="white_content">
+        <button type="button" class="close" aria-label="Close" id="close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h3 id="title" style="text-align:center">變更會議時間</h3>
+        @using (Html.BeginForm("edit", "monthtest", FormMethod.Post, new { style = "height: calc(100% - 55px);", id = "editfrom" }))
+        {
+            @Html.AntiForgeryToken()
+            <div style="position: relative; display: flex; flex-direction: column; height: 100%;">
+                <div style="flex: 7;">
+                    <div class="form-horizontal">
+                        <hr />
+                        <input type="hidden" id="fRoom" name="fRoom" />
+                        <input type="hidden" id="fEmployeeId" name="fEmployeeId" />
+                        <input type="hidden" id="fName" name="fName" />
+
+                        <div style=" margin: 0 10% 0 10%;">
+                            <div class="form-group" style="text-align:center">
+                                <input type="hidden" id="fId" name="fId" />
+                                <div>
+                                    @Html.Label("Reason", "開會緣由", htmlAttributes: new { @class = "control-label-0 col-md-2" })
+                                    <div style="display: flex; flex-direction: column;">
+                                        @Html.Editor("fReason", new { htmlAttributes = new { @class = "form-control", @style = "max-width: 100%" } })
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    @Html.ValidationMessage("fReason", "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group" style="text-align:center">
+                                <div>
+                                    @Html.Label("Reason", "日期", htmlAttributes: new { @class = "control-label-0 col-md-2" })
+                                    <div style="display: flex; flex-direction: column;">
+                                        @Html.Editor("fDate", new { htmlAttributes = new { @class = "form-control", @type = "date", @style = "max-width: 100%" } })
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="text-align:center">
+                            <div class="col-md-10 col-md-offset-4">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            開始時間:
+                                            <select name="fStarttime" id="fStarttime" selected-item=""></select>
+                                        </td>
+                                        <td>
+                                            結束時間:
+                                            <select name="fEndtime" id="fEndtime" selected-item=""></select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center">
+                                            @Html.ValidationMessage("fStarttime", "", new { @class = "text-danger" })
+                                            <span class="help-block with-errors"></span>
+                                        </td>
+                                        <td style="text-align:center">
+                                            @Html.ValidationMessage("fEndtime", "", new { @class = "text-danger" })
+                                            <span class="help-block with-errors"></span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <span style="font-size:2em" class="col-md-offset-5">時段表</span>
+
+                    <div class="block-view center">
+                        <div class="bar" id="timelist"></div>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1; margin-right: 5%;">
+                    <input id="send" type="submit" value="Save" class="btn btn-primary" style="float: right;" />
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+
+
+<div id="calendar_1"></div>
+
+<div id="list1">
+    <input type="hidden" value="" id="clickday" name="clickday">
+    <input type="hidden" value="" id="day">
+    <input type="hidden" value=@ViewBag.userid id="userid">
+    <input type="hidden" value=@ViewBag.user id="user">
+    <div id="list">
+        <h3 style="display:none">
+            <a href="javascript:void(0);" id="create-new">會議室申請</a>
+        </h3>
+        <h2>目前使用者:@ViewBag.user</h2>
+        <table class="table" id="home-table">
+            <thead>
+                <tr>
+                    <td></td>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>

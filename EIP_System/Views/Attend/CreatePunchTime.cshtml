@@ -1,0 +1,133 @@
+﻿
+@{
+    ViewBag.Title = "CreatePunchTime";
+}
+
+
+<div class="row">
+    @*打卡*@
+    <div class="col-md-4 col-sm-4 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>打卡簽到 <small>Sessions</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="clock-wrapper">
+                    <div class="clock-content">
+                        <h4 id="date" class="date"></h4>
+                        <h3 id="time" class="green"></h3>
+                        <button class="btn btn-primary btn-lg btn-block" onclick="punchTime()" id="punchTime">打卡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*日曆*@
+    <div class="col-md-8 col-sm-8 ">
+        <div class="x_panel">
+            <div id='calendar'></div>
+        </div>
+    </div>
+    @*打卡紀錄*@
+    <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>Recent Activities <small>Sessions</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered table-striped" id="punchTable">
+                    <thead>
+                        <tr>
+                            <td>流水號</td>
+                            <td>員工編號</td>
+                            <td>打卡日期</td>
+                            <td>打卡狀態</td>
+                        </tr>
+                    </thead>
+
+                    @*@foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.fId</td>
+                                <td>@item.fEmployeeId</td>
+                                <td>@item.fDate</td>
+                                <td>@item.fPunchstatus</td>
+                            </tr>
+                        }*@
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+
+         //Punchtime
+        function punchTime() {
+            var punchTime = moment().format();
+            console.log(punchTime);
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("punchTime","home")",
+                data: { now: punchTime},
+                success: function (response) {
+                    console.log(response);
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            //Clock
+            function updateTime() {
+                const now = new moment();
+                now.locale("zh-tw");
+                const date = now.format("LL");
+                const time = now.format("hh:mm:ssA");
+                $("#date").text(date);
+                $("#time").text(time);
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+
+             //顯示取得Fullcalendar的JSON
+            //var jsResult = @Html.Raw(ViewBag.flist);
+
+            //Fullcalendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+                },
+                initialDate: '2020-01-01',
+                locale: "zh-tw",
+                buttonIcons: false, // show the prev/next text
+                weekNumbers: true,
+                navLinks: true, // can click day/week names to navigate views
+                editable: true,
+                dayMaxEvents: true, // allow "more" link when too many events
+                //events: jsResult //將取得的JSON放入
+
+
+            });
+            calendar.render();
+
+            //DataTable
+            $('#punchTable').DataTable();
+
+
+        });
+
+    </script>
+}
+

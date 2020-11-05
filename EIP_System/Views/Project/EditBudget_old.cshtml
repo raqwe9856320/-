@@ -1,0 +1,225 @@
+﻿@model EIP_System.ViewModel.CVM_BudgetLevel
+
+@{
+    ViewBag.Title = "EditBudget";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="">
+
+            <p>
+                @Html.ActionLink("修改階段", "ListLevel", new { prjId = @Model.budget.fProjectId })
+            </p>
+            <div class="clearfix"></div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 ">
+                    <div class="x_panel">
+                        <div class="x_title">
+
+                            <h2>@Model.budget.tProject.fProjectName @Model.budget.tProject.fProjectId </h2>
+
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+
+                            <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                                </li>
+
+                            </ul>
+                            <div>
+                                @for (int i = 0; i < Model.levels.Count(); i++)
+                                {
+                                    <h2 class="page-header">@Model.levels[i].fLevelName 階段</h2>
+                                    <div class="input-group">
+                                        <span class="input-group-addon" style="width:10px">預估時數</span>
+                                        @Html.EditorFor(model => model.levels[i].fEstimateTime, new { htmlAttributes = new { @class = "form-control", onchange = "sum()" } })
+                                        @Html.ValidationMessageFor(model => model.levels[i], "", new { @class = "text-danger" })
+                                        @*<input type="text" class="form-control" aria-label="Amount (to the nearest dollar)">*@
+                                        <span class="input-group-addon" id="basic-addon2" style="width:20px">小時</span>
+                                    </div>
+                                }
+
+                            </div>
+                            @*</div>*@
+
+
+
+                            <div class="col-md-6 col-sm-6  ">
+                                <div class="x_title">
+                                    <h2>專案成本池 </h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">平均時薪</label>
+                                        <div class="col-md-10">
+                                            @Html.EditorFor(model => model.budget.fSalaryHour, new { htmlAttributes = new { @class = "form-control", onchange = "sum()" } })
+                                            @Html.ValidationMessageFor(model => model.budget.fSalaryHour, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">管銷費用(%)</label>
+                                        <div class="col-md-10">
+                                            @Html.EditorFor(model => model.budget.fManagementFeePct, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.budget.fManagementFeePct, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-md-6 col-sm-6  ">
+
+                                <div class="x_title">
+                                    <h2>計算結果</h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <!-- /.col -->
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                            @for (int i = 0; i < Model.levels.Count(); i++)
+                                            {
+                                                <tr>
+                                                    <th style="width:50%">@Model.levels[i].fLevelName 階段:</th>
+                                                    <td>
+                                                        $
+                                                        <span id="levelBudget_@i"></span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            <tr>
+                                                <th>
+                                                    <b>專案成本小計</b>
+                                                </th>
+                                                <td>
+                                                    $
+                                                    <b id="totalBudget"></b>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <button type="submit" class="btn btn-success">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<style>
+    .page-header {
+        margin-top: 10px;
+        border-bottom: 0px;
+    }
+
+    .input-group {
+        margin-bottom: 30px;
+    }
+</style>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            let money = 0;
+            money = $("#budget_fSalaryHour").val();
+            let sumTime = 0;
+
+            for (let i = 0; i < @Model.levels.Count(); i++) {
+                let time = parseInt($("#levels_" + i + "__fEstimateTime").val());
+                sumTime += time;
+
+                let levelBudget = time * money;
+                $(`#levelBudget_${i}`).text(levelBudget);
+            }
+
+            $("#totalBudget").text(sumTime * money);
+        });
+
+        //自動計算預算小計
+        function sum() {
+            let money = 0;
+            money = $("#budget_fSalaryHour").val();
+            let sumTime = 0;
+            for (let i = 0; i < @Model.levels.Count(); i++) {
+                let time = parseInt($("#levels_" + i + "__fEstimateTime").val());
+                sumTime += time;
+
+                let levelBudget = time * money;
+                $(`#levelBudget_${i}`).text(levelBudget);
+            }
+
+            $("#budget_fBudget").val(sumTime * money);
+            $("#totalBudget").text(sumTime * money);
+        }
+
+        //自動計算管銷費用
+        function calManagementFee() {
+            let managementFeePTC = $("#budget.fManagementFeePct").val();
+            let managementFee = @Model.budget.tProject.fPrice* managementFeePTC;
+
+        }
+
+        //切換專案基本資料
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                 window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @Model.budget.fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @Model.budget.fProjectId })';
+                },
+                error: function (err) { }
+            })
+        })
+
+        //切換工作項目
+        $("#ProjectDetail").click(function () {
+            $.ajax({
+                type: "GET",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href =  '@Url.Action("List", "ProjectDetail", new { prjId = @Model.budget.fProjectId })';
+                },
+                error: function (err) { }
+                    })
+        })
+    </script>
+}

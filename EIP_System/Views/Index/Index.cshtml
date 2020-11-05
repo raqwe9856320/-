@@ -1,0 +1,382 @@
+﻿@model string
+@{
+}
+
+
+<div class="row">
+    @*行事曆*@
+    <div class="col-md-8 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>
+                    個人行事曆
+                </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div id="calendar" class="calendar">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @*快速打卡*@
+    <div class="col-md-4">
+        <div class="x_panel">
+            <div class="x_content">
+                <a class="tile-stats bg-green" href="#">
+                    <div class="icon"><i class="fa fa-check-circle-o"></i></div>
+                    <div class="count">快速打卡</div>
+                    <p>你今天還沒打卡</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    @*公告欄*@
+    <div class="col-md-4 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>
+                    公告欄
+                </h2>
+                <div id="btn" style="float:right;display:none;padding-right:10px">
+                    <span id="create" title="新增公告" style="color:#73879C;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="board-main">
+                    <div class="board" id="board">
+
+                    </div>
+                </div>
+                <div class="board-select">
+                    <div id="board-prev" class="glyphicon glyphicon-chevron-left" style="width:15%;display:inline-block;line-height:50px;cursor:pointer">
+                    </div>
+                    <div id="board-page" style="display:inline-block">
+                    </div>
+                    <div id="board-next" class="glyphicon glyphicon-chevron-right" style="width:15%;display:inline-block;cursor:pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        let calendarid = "";
+        let boardid = "";
+        let starttime;
+        let endtime;
+        let openedcon = [-1];
+        let noticecontent = '';
+        let bodyheight = parseInt($(document).height())
+        bellHub.client.bell = function () {
+            bellring += 1
+            $("#bg-green-counts").css({ "display": "inline-block" })
+            document.getElementById("bg-green-counts").innerHTML = bellring
+        }
+        //行事曆
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prevYear,prev,next,nextYear today',
+                    center: 'title',
+                    right:'dayGridMonth,dayGridWeek,dayGridDay'
+                },
+                locale:"zh-tw",
+                initialDate: '2020-09-12',
+                selectable: true,
+                editable: true,
+                dayMaxEvents: true,
+            select: function (info) {
+                $("#calendar-btn-del").css({ "display": "none" })
+                resetinput()
+                $(".background-calendar").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+                starttime = info.startStr
+                endtime = info.endStr
+                },
+            eventClick: function (info) {
+                $("#calendar-btn-del").css({ "display": "inline-block" })
+                calendarid = info.event.id
+                starttime = info.event.startStr
+                endtime = info.event.endStr
+                $.ajax({
+                     url: "@Url.Action("ShowCalendar", "Index")",
+                     method: "post",
+                     contentType: 'application/json',
+                     data: JSON.stringify({ id: info.event.id})
+                }).done(function (data) {
+                    let list = JSON.parse(data)
+                    $("#calendar-title").val("" + list[0].fTitle)
+                    noticecontent = list[0].fTitle;
+                    $("#calendar-content").val("" + list[0].fContent)
+                })
+                $(".background-calendar").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+            },
+            eventDrop: function (info) {
+                calendarid = info.event.id
+                starttime = info.event.startStr
+                endtime = info.event.endStr
+                 $.ajax({
+                     url: "@Url.Action("ShowCalendar", "Index")",
+                     method: "post",
+                     contentType: 'application/json',
+                     data: JSON.stringify({ id: info.event.id})
+                }).done(function (data) {
+                    let list = JSON.parse(data)
+                    $("#calendar-title").val("" + list[0].fTitle)
+                    $("#calendar-content").val("" + list[0].fContent)
+                    insertcalendar();
+                })
+
+                alert("修改成功")
+            }
+        });
+        //讀取行事曆事件
+        $.ajax({
+            url: "@Url.Action("ShowCalendar", "Index")",
+                method: "post",
+            contentType: 'application/json'
+        }).done(function (data) {
+            let list = JSON.parse(data)
+            for (let i = 0; i < list.length; i++)
+            {
+                calendar.addEvent({
+                    id: list[i].fId,
+                    title: list[i].fTitle,
+                    start: list[i].fStart,
+                    end: list[i].fEnd
+                })
+            }
+        })
+        calendar.render();
+        //新增行事曆
+        function insertcalendar() {
+                        $.ajax({
+                    url: "@Url.Action("InsertCalendar", "Index")",
+                    method: "post",
+                            contentType: 'application/json',
+                            data: JSON.stringify({ id: calendarid, start: starttime, end: endtime, title: $("#calendar-title").val(), content: $("#calendar-content").val() })
+                     }).done(function (data) {
+                         let list = JSON.parse(data)
+                         for (let i = 0; i < list.length; i++)
+                         {
+                             let event = calendar.getEventById(list[i].fId)
+                             if (event != null)
+                             event.remove()
+                             calendar.addEvent({
+                                id: list[i].fId,
+                                title: list[i].fTitle,
+                                start: list[i].fStart,
+                                end: list[i].fEnd
+                             })
+                         }
+                         if ($("#calendar-checkbox").prop("checked"))
+                             $.ajax({
+                                 url: "@Url.Action("InsertBell", "Index")",
+                                 method: "post",
+                                 contentType: 'application/json',
+                                 data: JSON.stringify({ title: "新任務已添加", content: noticecontent })
+                             }).done(function (data) {
+                             })
+                     })
+                        $(".background-calendar").css({ "display": "none" })
+        }
+        //刪除行事曆
+        function removecalendar() {
+            let event = calendar.getEventById(calendarid)
+            if (event != null)
+                event.remove()
+            $.ajax({
+                url: "@Url.Action("RemoveCalendar", "Index")",
+                method: "post",
+                contentType: 'application/json',
+                data: JSON.stringify({ id: calendarid })
+            }).done(function (data) {
+                let list = JSON.parse(data)
+                for (let i = 0; i < list.length; i++) {
+                    let event = calendar.getEventById(list[i].fId)
+                    if (event != null)
+                        event.remove()
+                    calendar.addEvent({
+                        id: list[i].fId,
+                        title: list[i].fTitle,
+                        start: list[i].fStart,
+                        end: list[i].fEnd
+                    })
+                }
+            })
+            $(".background-calendar").css({ "display": "none" })
+        }
+        $("#calendar-btn-sub").click(function () { insertcalendar(); resetinput(); })
+        $("#calendar-btn-del").click(function () { removecalendar(); resetinput();})
+        $("#calendar-btn-cls").hover(function () { $(this).css({ "color": "#d9544f" }) }, function () { $(this).css({ "color": "#72879c" }) })
+        $("#calendar-btn-cls").click(function () { $(".background-calendar").css({ "display": "none" }); resetinput(); $("#calendar-checkbox").prop("checked", false) })
+        $("#board-btn-cls").hover(function () { $(this).css({ "color": "#d9544f" }) }, function () { $(this).css({ "color": "#72879c" }) })
+        document.getElementById("user-profile-name").innerHTML = '@ViewBag.acc'
+        //公告欄刷新
+        function refreshboard(list) {
+            let boardtpages = Math.ceil(list.length / 9)
+            let boardpage = 1
+            document.getElementById("board").innerHTML = '';
+            try {
+                $("#board-next").off();
+                $("#board-prev").off();
+                for (let i = 0; i < list.length; i++) { $("#sup" + i).off() }
+            }
+            catch{ }
+            for (let i = list.length - 1; i >= 0; i--) {
+                document.getElementById("board").innerHTML +=
+                '<ul id="sup' + i + '" class="x_panel" style="margin-bottom:0;display:none" >'+
+                '<li style="width:100%">' +
+                '<ul id="sup-sup' + i + '" class="sup-sup">' +
+                '<li style="width:20%"><div class="text-hidden" title="(一般)">(一般)' +
+                '</div></li>' +
+                '<li style="width:30%"><div class="text-hidden" title="' + list[i].fTitle + '">' + list[i].fTitle +
+                '</div></li>' +
+                '<li style="width:20%"><div class="text-hidden" title="發文人">' + list[i].f +
+                '</div></li>' +
+                '<li style="float:right;width:30%;"><div class="text-hidden" title="' + list[i].fPostTime + '">' + list[i].fPostTime +
+                '</div></li>' +
+                '</ul>' +
+                '</li >' +
+                '</ul >' +
+                '<div id="content-box' + i + '" style="overflow:auto;height:0px;color:black;background-color:#F9FFFF;font-size:14px">' +
+                '<div id="content-text' + i +'" style="padding:15px;height:98%;overflow:auto">'+
+                list[i].fContent+
+                '</div>' +
+                '<div style="background-color:black;height:2%;">' +
+                '</div>' +
+                '<div id = "btn" style = "background-color:white;display:none " >' +
+                '<span id="board-btn-update' + i +'" style="padding-left:10px;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-pencil" aria-hidden="true" ></span>' +
+                '<span id="board-btn-remove'+ i +'" style="padding-left:10px;color:red;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-remove" aria-hidden="true" ></span>' +
+                '</div>' +
+                '</div >'
+            }
+            for (let i = 0; i < list.length; i++) {
+                $("#sup" + i).hover(function () { $(this).css({ "background-color":"#E5E5FF","color": "black" });  },
+                    function () { $(this).css({ "background-color": "white" });  })
+                $("#sup" + i).click(function () {
+                    if (openedcon.indexOf(i) != -1) { $("#content-box" + i).stop(); $("#content-box" + i).animate({ height: "0" }, { duration: 300 }); let index = openedcon.indexOf(i); openedcon.splice(index, 1); return }
+                    else {
+                        for (let j = 0; j < list.length; j++) {
+                            if (i === j) { $("#content-box" + i).stop();  $("#content-box" + i).animate({ height: "200px" }, { duration:300 }); }
+                        }
+                    }
+                    if (@ViewBag.a)
+                        $('[id=btn]').css({ "display": "block" })
+                    openedcon.push(i);
+                })
+                $("#board-btn-update" + i).click(function () {
+                    $("#board-title").val("" + list[i].fTitle)
+                    $("#board-content").val("" + list[i].fContent)
+                    boardid = list[i].fId
+                    $(".background-board").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+                })
+            }
+            for (let i = list.length - (1 + 7 * (boardpage-1)); i > list.length - (1+ 7* boardpage); i--) {
+                $("#sup" + i).css({"display":"flex"})
+            }
+            boardchange(boardpage, boardtpages)
+            $("#board-next").click(function () {
+                if (boardpage < boardtpages) boardpage += 1;
+                boardchange(boardpage, boardtpages)
+                for (let i = list.length - 1; i >= 0; i--) { $("#sup" + i).css({ "display": "none" }); $("#content-box" + i).css({ "display": "none" }) }
+                for (let i = list.length - (1 + 7 * (boardpage - 1)); i > list.length - (1 + 7 * boardpage); i--) {
+                    $("#sup" + i).css({ "display": "flex" })
+                    $("#content-box" + i).css({ "display": "block" })
+                }
+            })
+            $("#board-prev").click(function () {
+                if (boardpage > 1) boardpage -= 1;
+                boardchange(boardpage, boardtpages)
+                for (let i = list.length - 1; i >= 0; i--) { $("#sup" + i).css({ "display": "none" }); $("#content-box" + i).css({ "display": "none" })}
+                for (let i = list.length - (1 + 7 * (boardpage - 1)); i > list.length - (1 + 7 * boardpage); i--) {
+                    $("#sup" + i).css({ "display": "flex" })
+                    $("#content-box" + i).css({ "display": "block" })
+                }
+            })
+        }
+        //公告欄讀取
+        $.ajax({
+                    url: "@Url.Action("ShowBoard", "Index")",
+                    method: "post",
+                 contentType: 'application/json'
+        }).done(function (data) { refreshboard(JSON.parse(data)) })
+        //公告欄編輯頁面送出
+        $("#board-btn-sub").click(function () {
+            openedcon = [-1];
+            let title = $("#board-title").val();
+            let content = $("#board-content").val().replace(/\n/g, "<br>");
+            content.replace(/  /g, "  ");
+            let promise =
+                $.ajax({
+                url: "@Url.Action("InsertBoard", "Index")",
+                method: "post",
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: boardid, title: title, content: content })
+                });
+            promise.done(function (data) { refreshboard(JSON.parse(data)); resetinput(); boardpage=1 })
+            $(".background-board").css({ "display": "none" })
+        })
+        //公告欄編輯頁面關閉
+        $("#board-btn-cls").click(function () {
+            $(".background-board").css({ "display": "none" })
+            resetinput();
+        })
+        //新增公告
+        $("#create").click(function () {
+            $(".background-board").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+            $("#sup").css({ "z-index": 0 })
+        })
+        $("#create").hover(function () { $(this).css({ "color": "#63b4ff" }); },
+            function () { $(this).css({ "color": "#73879C" }) })
+        $("#delete").click(function () {
+
+            })
+        //公告欄頁碼
+        function boardchange(page, tpage) {
+            document.getElementById("board-page").innerHTML = '';
+            if (tpage >= 5) {
+                for (let i = 0; i < 5; i++) {
+                    document.getElementById("board-page").innerHTML +=
+                        '<div id="board-page-' + (i+1) + '" style="display:inline-block;padding:5px;cursor:pointer">' + (i + 1);
+
+                    $("#board-page-" + (i + 1)).click(function () {
+                        page = i+1
+                        $("#board-page-" + page).css({ "color": "red" })
+                    })
+                }
+                $("#board-page-" + page).css({ "color": "red" })
+            }
+            else
+            {
+                for (let i = 0; i < tpage; i++) {
+                    document.getElementById("board-page").innerHTML +=
+                        '<div id="board-page-' + (i + 1) + '" style="display:inline-block;padding:5px;cursor:pointer">' + (i + 1);
+                    $("#board-page-" + (i + 1)).click(function () {
+                        for (let j = 0; j < tpage; j++)
+                        {
+                            $("#board-page-" + j).css({ "color": "#73879C" })
+                        }
+                        page = i + 1
+                        $("#board-page-" + page).css({ "color": "red" })
+                    })
+                }
+                $("#board-page-" + page).css({ "color": "red" })
+            }
+        }
+        //清空輸入值
+        function resetinput() {
+            $("#calendar-title").val('');
+            $("#calendar-content").val('');
+            calendarid = "";
+            $("#board-title").val('');
+            $("#board-content").val('');
+        }
+        if (@ViewBag.a)
+            $('[id=btn]').css({ "display": "block" })
+    </script>
+}

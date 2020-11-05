@@ -1,0 +1,408 @@
+﻿@model EIP_System.Models.tProjectDetail
+@{
+    ViewBag.Title = "Index";
+    string id = TempData["prjId"].ToString();
+    //string id = "1090101";
+
+
+    List<SelectListItem> statusList = new List<SelectListItem>
+{
+        new SelectListItem{Text= "未開始", Value="未開始"},
+        new SelectListItem{Text= "進行中", Value="進行中"},
+        new SelectListItem{Text= "待驗收", Value="待驗收"},
+        new SelectListItem{Text= "驗收完成", Value="驗收完成"}
+    };
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 工作項目 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+
+                    <li class="nav-item">
+                        <a class="nav-link active" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                    </li>
+                    <li class="nav-item">
+                        @*@Html.ActionLink("工作項目", "Index", "ProjectDetail",new { prjId=@Model.fProjectId},new { Class="nav-link",id="ProjectDetail",href="#contact",role="tab"})*@
+                        <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                    </li>
+
+                </ul>
+                <div class="row">
+                    <div class="col-md-3 ">
+                        <a class="tile-stats bg-green">
+                            <div class="icon">
+                                <i class="fa fa-circle-o-notch"></i>
+                            </div>
+                            <div class="count">未開始</div>
+                            <div class="count">10</div>
+
+                        </a>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <a class="tile-stats bg-blue">
+                            <div class="icon">
+                                <i class="fa fa-comments-o"></i>
+                            </div>
+                            <div class="count">進行中</div>
+                            <div class="count">5</div>
+                        </a>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <div class="tile-stats bg-orange">
+                            <div class="icon">
+                                <i class="fa fa-sort-amount-desc"></i>
+                            </div>
+                            <div class="count">待驗收</div>
+                            <div class="count">3</div>
+                        </div>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <div class="tile-stats bg-blue-sky">
+                            <div class="icon">
+                                <i class="fa fa-check-circle-o"></i>
+                            </div>
+                            <div class="count">驗收完成</div>
+                            <div class="count">10</div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <button class="btn btn-default" style="margin-bottom:10px" onclick="showModal('add')">Add New</button>
+                <table class="table table-bordered" id="TaskList">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>階段</th>
+                            <th>任務</th>
+                            <th>負責人</th>
+                            <th>狀態</th>
+                            <th>起始日</th>
+                            <th>截止日</th>
+                            <th>備註</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增工作項目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Postdata", "Home", FormMethod.Post, new { @id = "formsumit" }))
+                {
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        @*使用Html.HiddenFor 隱藏ID用於修改相關*@
+                        @Html.HiddenFor(model => model.fProjectDetailId)
+                    </div>
+
+                    <div class="form-group">
+                        @Html.HiddenFor(model => model.fProjectId)
+                    </div>
+
+                    @*從tlevel產生下拉式選單*@
+                    <div class="form-group">
+                        <label class="control-label col-md-2">階段</label>
+                        <div class="col-md-10">
+                            <select id="fLevelId" name="fLevelId" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">任務</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fTaskName, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.fTaskName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    @*從tMember產生下拉式選單*@
+                    @*<div class="form-group">
+                            <label class="control-label col-md-2">負責人</label>
+                            <div class="col-md-10">
+                                <input id="fEmployeeId" class="form-control" readonly="readonly">
+                            </div>
+                        </div>*@
+
+                    @*<div class="form-group">
+                            <label class="control-label col-md-2">狀態</label>
+                            <div class="col-md-9 col-sm-9 ">
+                                @Html.DropDownListFor(model => model.fStatus, statusList, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                @Html.ValidationMessageFor(model => model.fStatus, "", new { @class = "text-danger" })
+                            </div>
+                        </div>*@
+
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">狀態</label>
+                        <div class="col-md-9 col-sm-9 ">
+                            <select id="fStatus" name="fStatus" class="form-control">
+                                <option>未開始</option>
+                                <option>進行中</option>
+                                <option>待驗收</option>
+                                <option>驗收完成</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">起始日</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fStartTime, new { htmlAttributes = new { @class = "form-control", type = "date", required = "required" } })
+                            @Html.ValidationMessageFor(model => model.fStartTime, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">截止日</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fDeadline, new { htmlAttributes = new { @class = "form-control", type = "date", required = "required" } })
+                            @Html.ValidationMessageFor(model => model.fDeadline, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">備註</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fRemarks, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.fRemarks, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="showAdd" onclick="insert()">新增</button>
+                <button type="button" class="btn btn-primary" id="showUpdate" onclick="update()">修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script>
+        let data;
+        //取得工作項目
+        var taskTable;
+        $(document).ready(function () {
+            taskTable =
+               $("#TaskList").DataTable({
+                "ajax": {
+                    "type": "GET",
+                    "url":"@Url.Action("GetaData", "ProjectDetail")",
+                    "datatype": "JSON"
+                },
+                   "columns": [
+                        { "data": "levelName" },
+                        { "data": "taskName" },
+                        { "data": "empName" },
+                        { "data": "status" },
+                        { "data": "startTime" },
+                        { "data": "deadline" },
+                       { "data": "remark" },
+                       {
+                           "data": "prjDetailId", "render": function (prjDetailId) {
+                               return `<a class='btn btn-success' onclick='getEdit(${prjDetailId}); showModal();' style='margin-right:10px'>編輯</a>`
+                               +`<a class='btn btn-primary' onclick='Delete(${prjDetailId})'>刪除</a>`
+                           }
+                       }
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "沒有任何資料，請按[新增]按鈕來新增資料"
+                }
+            });
+        });
+
+        //顯示新增,修改視窗
+        function showModal(status) {
+            $("#fProjectId").val(@id);
+            $("#myModal").modal("show");
+            getLevel(@id);
+            if (status == 'add') {
+                //新增
+                $("#showAdd").show();
+                $("#showUpdate").hide();
+            } else {
+                //修改
+                $("#showAdd").hide();
+                $("#showUpdate").show();
+            }
+        }
+
+
+        //新增資料
+        function insert() {
+            var data = $("#formsumit").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Create", "ProjectDetail")",
+                data: data,
+                success: function (response) {
+                    if (response == "success") {
+                        alert("資料儲存成功");
+                        taskTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    }
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            })
+        }
+
+
+        //修改資料
+        function update() {
+            var data = $("#formsumit").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Edit", "ProjectDetail")",
+                data: data,
+                success: function (response) {
+                    if (response == "success") {
+                        alert("資料儲存成功");
+                        taskTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    }
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            })
+        }
+
+        //刪除
+        function Delete(id) {
+            console.log("刪除" + id);
+            if (confirm("確定要刪除?")) { 
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Delete?fId=" + id,
+                @*url: "@Url.Action("Delete", "ProjectDetail")/" + id,*@
+                success: function (response) {
+                    if (response == "success") {
+                        alert("資料儲存成功");
+                        taskTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    }
+                    else {
+                        alert("不允許刪除此任務，已有此任務的工時紀錄");
+                        taskTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    };
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            })        
+            }
+        }
+
+
+        //取得要修改的那筆資料
+        function getEdit(id) {
+            $.ajax({
+                type: "POST",
+                url: "/ProjectDetail/GetEdit?fId=" + id,
+                dataType: "JSON",
+                success: function (response) {
+                    //$("#fLevelId").val(respone.data[0].levelName);
+                    $("#fProjectDetailId").val(response.data[0].prjDetailId);
+                    $("#fLevelName").val(response.data[0].levelName);
+                    $("#fTaskName").val(response.data[0].taskName);
+                    $("#fStatus").val(response.data[0].status);
+                    $("#fStartTime").val(getDateIfDate(response.data[0].startTime));
+                    $("#fDeadline").val(getDateIfDate(response.data[0].deadline));
+
+                    function getDateIfDate(d) {
+                        jsDate = new Date(parseInt(d.substr(6)));
+                        console.log(jsDate)
+                        year = jsDate.getFullYear();
+                        month = jsDate.getMonth() + 1;
+                        date = jsDate.getDate();
+                        month = month >= 10 ? month : "0" + month;
+                        date = date >= 10 ? date : "0" + date;
+                        result = `${year}-${month}-${date}`;
+                        return result;
+                    }
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            })
+        }
+
+        //取得此案的所有階段
+        var prjId =@id;
+        var jsonLevel;
+        function getLevel(prjId) {
+            $("#fLevelId").empty();
+            $.ajax({
+                url: "/ProjectDetail/GetLevels?prjId=" + prjId,
+                type: "Get",
+                success: function (data) {
+                    jsonLevel = JSON.parse(data);
+                    $.each(jsonLevel, function (i, value) {
+                        //輸入案名後從tlevel產生下拉式選單
+                        $("#fLevelId").append("<option class='selector1' value=" + value.fLevelId + ">" + value.fLevelName + "</option>");
+                    })
+                }
+            });
+        };
+
+         //切換專案基本資料
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                 window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @id })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @id })';
+                },
+                error: function (err) { }
+            })
+        })
+
+    </script>
+}

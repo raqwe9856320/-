@@ -1,0 +1,215 @@
+﻿@*@{ HttpCookie cookie = Request.Cookies["id"];
+    if (cookie == null)
+    {
+        Response.Redirect("~/");
+    }
+
+}*@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/modernizr")
+    @*@Scripts.Render("~/bundles/topjs")*@
+</head>
+<body class="nav-md">
+
+    <div class="background-board">
+        <div id="popout" class="modal-content">
+            <div class="modal-header">
+                <span style="margin:0;width:90%;font-size:18px">公告欄</span>
+                <div class="glyphicon glyphicon-remove" id="board-btn-cls" style="float:right;width:10%;font-size:20px;cursor:pointer"></div>
+            </div>
+            <div class="modal-body" style="font-size:16px">
+                <p style="margin:0">標題</p>
+                <input id="board-title" class="form-control" type="text" style="width:400px" />
+                <p style="margin:0">內文</p>
+                <textarea id="board-content" class="form-control" style="height:200px"></textarea>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-primary" id="board-btn-sub" value="送出" />
+            </div>
+        </div>
+    </div>
+    <div class="background-calendar">
+        <div id="popout" class="modal-content">
+            <div class="modal-header">
+                <span style="margin:0;width:90%;font-size:18px">個人行事曆</span>
+                <div class="glyphicon glyphicon-remove" id="calendar-btn-cls" style="float:right;width:10%;font-size:20px;cursor:pointer"></div>
+            </div>
+            
+            <div class="modal-body" style="font-size:16px">
+                <p style="margin:0">標題</p>
+                <input id="calendar-title" class="form-control" type="text" style="width:400px" />
+                <p style="margin:0">內文</p>
+                <textarea id="calendar-content" class="form-control" style="height:200px"></textarea>
+                <p><label for="calendar-checkbox" style="font-weight:normal"><input type="checkbox" name="calendar-checkbox" id="calendar-checkbox" />啟用通知</label></p>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-primary" id="calendar-btn-sub" value="送出" />
+                <input type="button" class="btn btn-danger" id="calendar-btn-del" value="刪除" />
+            </div>
+        </div>
+    </div>
+
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="~/Index/Index" class="site_title"><i class="fa fa-paw"></i> <span>EIP System</span></a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <br />
+
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <div class="block"></div>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a><i class="fa fa-edit"></i> 員工管理系統 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="@Url.Action("Index","Employee")">員工管理</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a><i class="fa fa-edit"></i> 考勤管理系統 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("個人考勤資訊", "AttendIndex", "Attend")</li>
+                                        <li>@Html.ActionLink("打卡簽到", "CreatePunchTime", "Attend")</li>
+                                        <li>@Html.ActionLink("請假申請", "CreateLeave", "Attend")</li>
+                                        <li>@Html.ActionLink("加班申請", "CreateOverTime", "OverTime")</li>
+                                        <li>@Html.ActionLink("考勤查詢", "Userleaveinfo", "Attend")</li>
+                                    </ul>
+                                </li>
+
+                                <li>
+                                    <a><i class="fa fa-edit"></i> 專案管理系統 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("工時紀錄", "Index", "TimeRecord")</li>
+                                        <li>@Html.ActionLink("專案列表", "List", "Project")</li>
+                                        <li>@Html.ActionLink("我的任務", "Index", "Home")</li>
+                                    </ul>
+                                </li>
+
+                                <li>
+                                    <a href="@Url.Action("mettingIndex","Metting_room")"><i class="fa fa-edit"></i> 會議室租借 </a>
+
+                                </li>
+
+                                <li>
+                                    <a><i class="fa fa-edit"></i> 主管專區 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("考勤審核", "SignoffIndex", "Signoff")</li>
+                                        <li>@Html.ActionLink("專案審核", "Index", "ProjectSignoff")</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                    <!-- /sidebar menu -->
+                </div>
+            </div>
+
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <div class="nav toggle">
+                        <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                    </div>
+                    <nav class="nav navbar-nav">
+                        <ul class=" navbar-right">
+                            <li class="nav-item dropdown" style="padding-left: 15px;">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="~/js/下載.jpg" alt="">
+                                    <span id="user-profile-name">@Session["name100"]</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
+                                    <p id="dropdown-logout" style="cursor:pointer;margin:0" class="dropdown-item">登出<span class="glyphicon glyphicon-share" style="float:right"></span></p>
+                                </div>
+                            </li>
+
+                            <li role="presentation" class="nav-item dropdown" id="bell-dropdown">
+                                <a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="badge bg-green" id="bg-green-counts"></span>
+                                </a>
+                                <ul class="dropdown-menu list-unstyled msg_list" id="bell-dropdown-item" role="menu" aria-labelledby="navbarDropdown1"></ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+            <!-- page content -->
+            <div class="right_col" role="main">
+                <div class="">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12  ">
+                            @RenderBody()
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /page content -->
+            
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/customjs")
+    <script src="~/signalr/hubs"></script>
+
+    <script>
+        let bellring = 0;
+        let bellHub = $.connection.bellHub;
+        //小鈴鐺讀取
+        $.ajax({
+            url: '@Url.Action("ShowBell", "Index")',
+            method: "post",
+            contentType: 'application/json'
+        }).done(function (data) { bell(JSON.parse(data)) })
+        //小鈴鐺及時刷新
+        bellHub.client.bell = function () {
+            bellring += 1
+            $("#bg-green-counts").css({ "display": "inline-block" })
+            document.getElementById("bg-green-counts").innerHTML = bellring
+        }
+        $.connection.hub.start().done(function () {
+            $("#calendar-btn-sub").click(function () {
+                if ($("#calendar-checkbox").prop("checked")) {
+                    bellHub.server.bell();
+                }
+            })
+        })
+        //小鈴鐺點擊
+        $("#navbarDropdown1").click(function () {
+            if (bellring != 0)
+                $.ajax({
+                    url: '@Url.Action("UpdateBell", "Index")',
+                    method: "post",
+                    contentType: 'application/json',
+                    data: JSON.stringify({ type: 1 })
+                }).done(function (data) { bellring = 0; bell(JSON.parse(data)) })
+        })
+        $("#dropdown-logout").click(function () { window.location.href ='@Url.Action("Logout", "Index")'
+        })
+        $("#dropdown-logout").hover(function () { $("#dropdown-logout").css({ "background-color": "#E5E5FF"}) }, function () { $("#dropdown-logout").css({ "background-color": "white"}) })
+    </script>
+
+    @RenderSection("scripts", required: false)
+
+</body>
+
+</html>

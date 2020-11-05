@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "login";
+    Layout = null;
+}
+<div class="" style="background-color:#f7f7f7; justify-content:center;display:flex;height:100%;width:100%;position:absolute">
+    <div class="jumbotron" style="background-color:#2A3F54;padding:25px;border-radius:15px;top:10%;position:absolute;width:350px;">
+        <h2 style="color:#ECF0F1">系統登入</h2>
+        <hr class="my-4" style="border-color:gray">
+        <p style="color: #ECF0F1">@ViewBag.info</p>
+        <form action="" method="post" id="demo-form">
+            <div class="form-group">
+                <input class="form-control" type="text" id="acc" name="acc" style="width:100%" placeholder="請輸入帳號" />
+            </div>
+            <div class="form-group">
+                <input class="form-control" type="password" id="pw" name="pw" style="width:100%" placeholder="請輸入密碼" />
+            </div>
+            <div class="g-recaptcha" style="width:100%" data-sitekey="your_site_key"></div>
+            <div style="margin-top:10px">
+                <input class="btn btn-default" style="float:right" type="submit" value="登入" />
+            </div>
+            <div style="margin-top:10px">
+                <input id="demo1" class="btn btn-primary" type="button" value="主管" />
+            </div>
+            <div style="margin-top:10px">
+                <input id="demo2" class="btn btn-warning" type="button" value="職員" />
+            </div>
+        </form>
+
+    </div>
+</div>
+<script src="https://www.google.com/recaptcha/api.js"></script>
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script>
+    function onSubmit(token) {
+        document.getElementById("demo-form").submit();
+    }
+    $("#demo1").click(function () { $("#acc").val("A123399102"); $("#pw").val("a11111") })
+    $("#demo2").click(function () { $("#acc").val("A111111112"); $("#pw").val("a22222") })
+</script>
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
